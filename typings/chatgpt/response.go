@@ -1,6 +1,6 @@
 package chatgpt
 
-type ChatGPTResponse struct {
+type GptResponse struct {
 	Message        Message     `json:"message"`
 	ConversationID string      `json:"conversation_id"`
 	Error          interface{} `json:"error"`

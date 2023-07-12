@@ -82,25 +82,25 @@ type usage struct {
 	TotalTokens      int `json:"total_tokens"`
 }
 
-func NewChatCompletion(full_test string) ChatCompletion {
-	return ChatCompletion{
-		ID:      "chatcmpl-QXlha2FBbmROaXhpZUFyZUF3ZXNvbWUK",
-		Object:  "chat.completion",
-		Created: int64(0),
-		Model:   "gpt-3.5-turbo-0301",
-		Usage: usage{
-			PromptTokens:     0,
-			CompletionTokens: 0,
-			TotalTokens:      0,
-		},
-		Choices: []Choice{
-			{
-				Message: Msg{
-					Content: full_test,
-					Role:    "assistant",
-				},
-				Index: 0,
-			},
-		},
-	}
-}
+//func NewChatCompletion(full_test string) ChatCompletion {
+//	return ChatCompletion{
+//		ID:      "chatcmpl-QXlha2FBbmROaXhpZUFyZUF3ZXNvbWUK",
+//		Object:  "chat.completion",
+//		Created: int64(0),
+//		Model:   "gpt-3.5-turbo-0301",
+//		Usage: usage{
+//			PromptTokens:     0,
+//			CompletionTokens: 0,
+//			TotalTokens:      0,
+//		},
+//		Choices: []Choice{
+//			{
+//				Message: Msg{
+//					Content: full_test,
+//					Role:    "assistant",
+//				},
+//				Index: 0,
+//			},
+//		},
+//	}
+//}
