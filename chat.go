@@ -79,7 +79,7 @@ func Normal(c *gin.Context) {
 	req, err := http.NewRequest(c.Request.Method, requestUrl, c.Request.Body)
 	if err != nil {
 		c.JSON(500, gin.H{
-			"error": "error sending request",
+			"error": err.Error(),
 		})
 	}
 	authHeader := c.GetHeader("Authorization")
@@ -96,16 +96,16 @@ func Normal(c *gin.Context) {
 			"error": err.Error(),
 		})
 	}
-	body, err := io.ReadAll(req.Body)
+	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		c.JSON(500, gin.H{
-			"error": "error sending request",
+			"error": err.Error(),
 		})
 	}
 	var respData any
 	if err := json.Unmarshal(body, &respData); err != nil {
 		c.JSON(500, gin.H{
-			"error": "error sending request",
+			"error": err.Error(),
 		})
 	}
 	c.JSON(http.StatusOK, respData)
