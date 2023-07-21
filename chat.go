@@ -31,8 +31,9 @@ var (
 	}
 	client, _ = tls_client.NewHttpClient(tls_client.NewNoopLogger(), options...)
 
-	httpProxy = os.Getenv("HTTP_PROXY")
-	ApiDomain = getEnv("API_Domain", "https://chat.openai.com")
+	httpProxy      = os.Getenv("HTTP_PROXY")
+	arkoseTokenUrl = os.Getenv("ARKOSE_TOKEN_URL")
+	apiDomain      = getEnv("API_Domain", "https://chat.openai.com")
 )
 
 func init() {
@@ -43,13 +44,78 @@ func init() {
 		}
 	}
 }
+func handleConversation(c *gin.Context, translatedRequest chatgpt_types.GptRequest) {
+	var response *http.Response
+	authHeader := c.GetHeader("Authorization")
+	if authHeader != "" {
+		AccessToken = strings.Replace(authHeader, "Bearer ", "", 1)
+	}
+	response, err := sendConversationRequest(translatedRequest, AccessToken)
+	if err != nil {
+		c.JSON(500, gin.H{
+			"error": "error sending request",
+		})
+		return
+	}
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			return
+		}
+	}(response.Body)
+	HandlerStream(c, response, translatedRequest, AccessToken)
+	c.String(200, "data: [DONE]\n\n")
+}
+
+func Normal(c *gin.Context) {
+	var requestUrl string
+	if c.Param("path") == "/conversation_limit" {
+		requestUrl = "https://" + apiDomain + "/public-api" + c.Param("path") + "?" + c.Request.URL.RawQuery
+	} else if c.Request.URL.RawQuery != "" {
+		requestUrl = "https://" + apiDomain + "/backend-api" + c.Param("path") + "?" + c.Request.URL.RawQuery
+	} else {
+		requestUrl = "https://" + apiDomain + "/backend-api" + c.Param("path")
+	}
+	req, err := http.NewRequest(c.Request.Method, requestUrl, c.Request.Body)
+	c.JSON(500, gin.H{
+		"error": "error sending request",
+	})
+	authHeader := c.GetHeader("Authorization")
+	if authHeader != "" {
+		AccessToken = strings.Replace(authHeader, "Bearer ", "", 1)
+	}
+	req.Header.Set("Authorization", authHeader)
+	req.Header.Set("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36")
+	req.Header.Set("Accept", "*/*")
+
+	response, err := client.Do(req)
+	if response.StatusCode != 200 {
+		c.JSON(500, gin.H{
+			"error": "error sending request",
+		})
+	}
+	body, err := io.ReadAll(req.Body)
+	if err != nil {
+		c.JSON(500, gin.H{
+			"error": "error sending request",
+		})
+	}
+	var respData any
+	if err := json.Unmarshal(body, &respData); err != nil {
+		c.JSON(500, gin.H{
+			"error": "error sending request",
+		})
+	}
+	c.JSON(http.StatusOK, respData)
+}
+
 func sendConversationRequest(message chatgpt_types.GptRequest, accessToken string) (*http.Response, error) {
 	bodyJson, err := json.Marshal(message)
 	if err != nil {
 		return &http.Response{}, err
 	}
 
-	request, err := http.NewRequest(http.MethodPost, ApiDomain+"/backend-api/conversation", bytes.NewBuffer(bodyJson))
+	request, err := http.NewRequest(http.MethodPost, apiDomain+"/backend-api/conversation", bytes.NewBuffer(bodyJson))
 	if err != nil {
 		return &http.Response{}, err
 	}
@@ -159,8 +225,6 @@ func HandlerStream(c *gin.Context, response *http.Response, translatedRequest ch
 		}
 	}
 }
-
-var arkoseTokenUrl = os.Getenv("ARKOSE_TOKEN_URL")
 
 func ConvertAPIRequest(apiRequest official_types.APIRequest) chatgpt_types.GptRequest {
 	chatgptRequest := chatgpt_types.NewChatGPTRequest()

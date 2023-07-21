@@ -30,6 +30,7 @@ func main() {
 
 	router.OPTIONS("/v1/chat/completions", optionsHandler)
 	router.POST("/v1/chat/completions", Authorization, CreateChatCompletions)
+	router.Any("/backend-api/*path", Authorization, Proxy)
 	err := router.Run(getEnv("SERVER_HOST", ":8080"))
 	if err != nil {
 		fmt.Println("Failed to start server: " + err.Error())
