@@ -70,11 +70,11 @@ func handleConversation(c *gin.Context, translatedRequest chatgpt_types.GptReque
 func Normal(c *gin.Context) {
 	var requestUrl string
 	if c.Param("path") == "/conversation_limit" {
-		requestUrl = "https://" + apiDomain + "/public-api" + c.Param("path") + "?" + c.Request.URL.RawQuery
+		requestUrl = apiDomain + "/public-api" + c.Param("path") + "?" + c.Request.URL.RawQuery
 	} else if c.Request.URL.RawQuery != "" {
-		requestUrl = "https://" + apiDomain + "/backend-api" + c.Param("path") + "?" + c.Request.URL.RawQuery
+		requestUrl = apiDomain + "/backend-api" + c.Param("path") + "?" + c.Request.URL.RawQuery
 	} else {
-		requestUrl = "https://" + apiDomain + "/backend-api" + c.Param("path")
+		requestUrl = apiDomain + "/backend-api" + c.Param("path")
 	}
 	req, err := http.NewRequest(c.Request.Method, requestUrl, c.Request.Body)
 	if err != nil {
@@ -93,7 +93,7 @@ func Normal(c *gin.Context) {
 	response, err := client.Do(req)
 	if response.StatusCode != 200 {
 		c.JSON(500, gin.H{
-			"error": "error sending request",
+			"error": err.Error(),
 		})
 	}
 	body, err := io.ReadAll(req.Body)
