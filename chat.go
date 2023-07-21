@@ -77,9 +77,11 @@ func Normal(c *gin.Context) {
 		requestUrl = "https://" + apiDomain + "/backend-api" + c.Param("path")
 	}
 	req, err := http.NewRequest(c.Request.Method, requestUrl, c.Request.Body)
-	c.JSON(500, gin.H{
-		"error": "error sending request",
-	})
+	if err != nil {
+		c.JSON(500, gin.H{
+			"error": "error sending request",
+		})
+	}
 	authHeader := c.GetHeader("Authorization")
 	if authHeader != "" {
 		AccessToken = strings.Replace(authHeader, "Bearer ", "", 1)
